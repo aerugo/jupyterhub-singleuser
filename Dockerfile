@@ -50,9 +50,9 @@ RUN pip install --no-cache-dir \
     requests \
     httpx
 
-# Install PyTorch CPU version
+# Install PyTorch with CUDA 12.1 support for GPU acceleration
 RUN pip install --no-cache-dir \
-    torch --index-url https://download.pytorch.org/whl/cpu
+    torch --index-url https://download.pytorch.org/whl/cu121
 
 # Install ML/AI libraries
 RUN pip install --no-cache-dir \
