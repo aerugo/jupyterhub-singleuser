@@ -20,7 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-USER jovyan
+# Install Python packages as root so they go to system site-packages
+# (not ~/.local which gets overlaid by the persistent home volume)
 
 # Install Marimo and extension
 RUN pip install --no-cache-dir \
@@ -59,6 +60,9 @@ RUN pip install --no-cache-dir \
     transformers \
     openai \
     anthropic
+
+# Switch back to jovyan user for runtime
+USER jovyan
 
 # Set working directory
 WORKDIR /home/jovyan
