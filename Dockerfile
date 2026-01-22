@@ -50,9 +50,12 @@ RUN pip install --no-cache-dir \
     requests \
     httpx
 
-# Install ML libraries (CPU versions - GPU pods will have CUDA available)
+# Install PyTorch CPU version
 RUN pip install --no-cache-dir \
-    torch --index-url https://download.pytorch.org/whl/cpu \
+    torch --index-url https://download.pytorch.org/whl/cpu
+
+# Install ML/AI libraries
+RUN pip install --no-cache-dir \
     transformers \
     openai \
     anthropic
