@@ -61,6 +61,25 @@ RUN pip install --no-cache-dir \
     openai \
     anthropic
 
+# Install dashboard dependencies (for Marimo dashboards)
+RUN pip install --no-cache-dir \
+    'weaviate-client>=4.9.0' \
+    'lakefs-sdk>=1.0.0'
+
+# Clone Brev Dashboards repository to /opt (not in /home/jovyan which is overlaid by PVC)
+# Dashboards are available at /opt/brev-dashboards/
+RUN git clone --depth 1 https://github.com/aerugo/brev-dashboards.git /opt/brev-dashboards \
+    && chmod -R 755 /opt/brev-dashboards
+
+# Create startup script to symlink dashboards to user home directory
+# This runs on container start and creates ~/dashboards -> /opt/brev-dashboards
+RUN echo '#!/bin/bash\n\
+if [ ! -e /home/jovyan/dashboards ]; then\n\
+    ln -s /opt/brev-dashboards /home/jovyan/dashboards\n\
+fi\n\
+exec "$@"' > /usr/local/bin/setup-dashboards.sh \
+    && chmod +x /usr/local/bin/setup-dashboards.sh
+
 # Switch back to jovyan user for runtime
 USER jovyan
 
@@ -70,5 +89,6 @@ WORKDIR /home/jovyan
 # Expose JupyterHub singleuser port
 EXPOSE 8888
 
-# Default command (inherited from base image)
-# CMD ["jupyterhub-singleuser"]
+# Use entrypoint to set up dashboards symlink before starting JupyterHub
+ENTRYPOINT ["/usr/local/bin/setup-dashboards.sh"]
+CMD ["jupyterhub-singleuser"]
