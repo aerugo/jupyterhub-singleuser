@@ -24,8 +24,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # (not ~/.local which gets overlaid by the persistent home volume)
 
 # Install Marimo and extension
+# Note: marimo>=0.25.0 required for mo.ui.form() with dict syntax
 RUN pip install --no-cache-dir \
-    'marimo>=0.10.0' \
+    'marimo>=0.25.0' \
     jupyterlab-marimo \
     jupyterlab-git
 
