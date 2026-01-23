@@ -26,7 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Marimo and extension
 RUN pip install --no-cache-dir \
     'marimo>=0.10.0' \
-    jupyterlab-marimo
+    jupyterlab-marimo \
+    jupyterlab-git
 
 # Install data science libraries
 RUN pip install --no-cache-dir \
@@ -66,19 +67,27 @@ RUN pip install --no-cache-dir \
     'weaviate-client>=4.9.0' \
     'lakefs-sdk>=1.0.0'
 
-# Clone Brev Dashboards repository to /opt (not in /home/jovyan which is overlaid by PVC)
-# Dashboards are available at /opt/brev-dashboards/
-RUN git clone --depth 1 https://github.com/aerugo/brev-dashboards.git /opt/brev-dashboards \
-    && chmod -R 755 /opt/brev-dashboards
+# Create startup script to set up dashboards in user home directory
+# This clones or updates the brev-dashboards repo in ~/dashboards (persistent, writable)
+# Users can commit and push changes using the JupyterLab Git extension
+RUN cat > /usr/local/bin/setup-dashboards.sh << 'SCRIPT'
+#!/bin/bash
+DASHBOARDS_DIR="/home/jovyan/dashboards"
+REPO_URL="https://github.com/aerugo/brev-dashboards.git"
 
-# Create startup script to symlink dashboards to user home directory
-# This runs on container start and creates ~/dashboards -> /opt/brev-dashboards
-RUN echo '#!/bin/bash\n\
-if [ ! -e /home/jovyan/dashboards ]; then\n\
-    ln -s /opt/brev-dashboards /home/jovyan/dashboards\n\
-fi\n\
-exec "$@"' > /usr/local/bin/setup-dashboards.sh \
-    && chmod +x /usr/local/bin/setup-dashboards.sh
+if [ ! -d "$DASHBOARDS_DIR" ]; then
+    echo "Cloning brev-dashboards to $DASHBOARDS_DIR..."
+    git clone "$REPO_URL" "$DASHBOARDS_DIR"
+elif [ -d "$DASHBOARDS_DIR/.git" ]; then
+    echo "Dashboards directory exists, fetching latest..."
+    cd "$DASHBOARDS_DIR" && git fetch origin 2>/dev/null || true
+else
+    echo "Dashboards directory exists but is not a git repo, skipping..."
+fi
+
+exec "$@"
+SCRIPT
+RUN chmod +x /usr/local/bin/setup-dashboards.sh
 
 # Switch back to jovyan user for runtime
 USER jovyan
