@@ -23,10 +23,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Python packages as root so they go to system site-packages
 # (not ~/.local which gets overlaid by the persistent home volume)
 
-# Install Marimo and extension (latest stable)
+# Install Marimo and JupyterLab integration
+# marimo-jupyter-extension: official marimo extension for JupyterLab/JupyterHub
+# Opens .py marimo notebooks in embedded marimo editor (replaces jupyterlab-marimo)
 RUN pip install --no-cache-dir \
-    marimo \
-    jupyterlab-marimo \
+    'marimo[sandbox]>=0.19.4' \
+    marimo-jupyter-extension \
     jupyterlab-git
 
 # Install data science libraries
