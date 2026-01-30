@@ -65,7 +65,8 @@ RUN pip install --no-cache-dir \
 # Install dashboard dependencies (for Marimo dashboards)
 RUN pip install --no-cache-dir \
     'weaviate-client>=4.9.0' \
-    'lakefs-sdk>=1.0.0'
+    'lakefs-sdk>=1.0.0' \
+    'altair>=5.0.0'
 
 # Create startup script to set up dashboards in user home directory
 # This clones or updates the brev-dashboards repo in ~/dashboards (persistent, writable)
